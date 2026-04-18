@@ -1,0 +1,48 @@
+.modal-header
+    h4.modal-title(translate) Migrate file:// paths to SSH Keymap
+    button.btn-close((click)='cancel()')
+
+.modal-body
+    .alert.alert-danger(*ngIf='error') {{error}}
+
+    .text-center(*ngIf='loading')
+        i.fas.fa-spinner.fa-spin.fa-2x
+
+    ng-container(*ngIf='!loading && !error')
+        p.text-muted(*ngIf='candidates.length === 0', translate)
+            | No SSH profiles currently use a file:// private key path. Nothing to migrate.
+
+        ng-container(*ngIf='candidates.length > 0')
+            p.text-muted(translate)
+                | Each absolute file:// path below can be converted into an sshkey:// entry. Adjust the logical name if needed, uncheck any you don't want to migrate.
+
+            table.table.table-sm
+                thead
+                    tr
+                        th
+                        th(translate) Current path
+                        th(translate) Logical name
+                        th(translate) Used by
+                tbody
+                    tr(*ngFor='let c of candidates')
+                        td
+                            input(type='checkbox', [(ngModel)]='c.selected')
+                        td
+                            small.text-muted {{c.fileUri}}
+                        td
+                            input.form-control.form-control-sm(
+                                type='text',
+                                [(ngModel)]='c.name',
+                                (ngModelChange)='onNameChange(c)',
+                                [class.is-invalid]='c.collides'
+                            )
+                        td
+                            small {{c.profileNames.join(', ')}}
+
+.modal-footer
+    button.btn.btn-secondary((click)='cancel()', translate) Cancel
+    button.btn.btn-primary(
+        (click)='apply()',
+        [disabled]='loading || !canApply()',
+        translate
+    ) Migrate selected

@@ -1,0 +1,29 @@
+.modal-header
+    h4.modal-title(translate) Select an SSH key
+    button.btn-close((click)='cancel()')
+
+.modal-body
+    p.text-muted(
+        *ngIf='entries.length === 0',
+        translate
+    ) No keys defined yet. Open the SSH Keymap tab from Settings to add one.
+
+    .list-group(*ngIf='entries.length > 0')
+        button.list-group-item.list-group-item-action.d-flex.align-items-center(
+            *ngFor='let entry of entries; let i = index',
+            #item,
+            (click)='pick(entry)',
+            [class.active]='selectedIndex === i'
+        )
+            i.fas.fa-fw.fa-key.me-2
+            .me-auto
+                strong {{entry.name}}
+                br
+                small.text-muted {{entry.path}}
+            i.fas.fa-exclamation-triangle.text-danger(
+                *ngIf='statuses.get(entry.name) === false',
+                ngbTooltip='File not found on disk'
+            )
+
+.modal-footer
+    button.btn.btn-secondary((click)='cancel()', translate) Cancel

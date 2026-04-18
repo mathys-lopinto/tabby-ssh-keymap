@@ -1,0 +1,114 @@
+.d-flex.align-items-center.mb-3
+    h3.mb-0(translate) SSH Keymap
+    button.btn.btn-sm.btn-secondary.ms-auto((click)='openKeymapFile()', ngbTooltip='Open ssh-keymap.json in file manager')
+        i.fas.fa-folder-open.me-2
+        span(translate) Open file
+    button.btn.btn-sm.btn-secondary.ms-2((click)='openMigrationModal()', ngbTooltip='Scan existing SSH profiles for file:// paths to convert')
+        i.fas.fa-magic.me-2
+        span(translate) Scan profiles
+
+p.text-muted(translate)
+    | Map logical key names (stored and synced in your SSH profiles as
+    code.mx-1 sshkey://&lt;name&gt;
+    | ) to the physical file paths on this machine. Mappings are stored locally in
+    code.mx-1 ssh-keymap.json
+    | ; when config sync is enabled, this file is never included in the sync. Paths starting with
+    code.mx-1 ~/
+    | are expanded to your home directory at resolution time.
+
+.card.mb-3
+    .card-header
+        h5.mb-0(translate) Add a key
+    .card-body
+        .row.g-2
+            .col-md-4
+                input.form-control(
+                    type='text',
+                    [(ngModel)]='newName',
+                    [placeholder]='"Logical name (e.g. cle-prod)"|translate'
+                )
+            .col-md-7
+                .input-group
+                    input.form-control(
+                        type='text',
+                        [(ngModel)]='newPath',
+                        [placeholder]='"/path/to/private/key or ~/.ssh/key"|translate'
+                    )
+                    button.btn.btn-secondary((click)='browseForNewPath()')
+                        i.fas.fa-folder-open
+            .col-md-1
+                button.btn.btn-primary.w-100(
+                    (click)='addEntry()',
+                    [disabled]='!newName || !newPath'
+                )
+                    i.fas.fa-plus
+        .alert.alert-danger.mt-2.mb-0(*ngIf='addError') {{addError}}
+
+.input-group.mb-2(*ngIf='views.length > 3')
+    .input-group-text
+        i.fas.fa-search
+    input.form-control(
+        type='text',
+        [(ngModel)]='filter',
+        [placeholder]='"Filter by name or path"|translate'
+    )
+
+.table-responsive(*ngIf='filteredViews.length > 0')
+    table.table.table-hover
+        thead
+            tr
+                th(translate) Name
+                th(translate) Path
+                th.text-center(translate) Status
+                th.text-center(translate) Used by
+                th(translate) Actions
+        tbody
+            tr(*ngFor='let view of filteredViews')
+                td
+                    code(*ngIf='!view.editing') sshkey://{{view.name}}
+                    input.form-control(
+                        *ngIf='view.editing',
+                        type='text',
+                        [(ngModel)]='view.editName',
+                        [placeholder]='"Logical name"|translate'
+                    )
+                td
+                    span(*ngIf='!view.editing') {{view.path}}
+                    .input-group(*ngIf='view.editing')
+                        input.form-control(type='text', [(ngModel)]='view.editPath')
+                        button.btn.btn-secondary((click)='browseForEditPath(view)')
+                            i.fas.fa-folder-open
+                td.text-center
+                    i.fas.fa-check-circle.text-success(
+                        *ngIf='view.exists',
+                        ngbTooltip='File found'
+                    )
+                    i.fas.fa-exclamation-circle.text-danger(
+                        *ngIf='!view.exists',
+                        ngbTooltip='File not found'
+                    )
+                td.text-center
+                    span.badge.text-bg-secondary(
+                        *ngIf='view.usedBy.length > 0',
+                        [ngbTooltip]='view.usedBy.join(", ")'
+                    ) {{view.usedBy.length}}
+                    span.text-muted(*ngIf='view.usedBy.length === 0') —
+                td.actions-cell
+                    .d-flex.align-items-center(*ngIf='!view.editing')
+                        button.btn.btn-sm.btn-link.px-2((click)='testKey(view)', ngbTooltip='Validate key format')
+                            i.fas.fa-vial
+                        button.btn.btn-sm.btn-link.px-2((click)='startEdit(view)', ngbTooltip='Edit')
+                            i.fas.fa-pencil-alt
+                        button.btn.btn-sm.btn-link.px-2.text-danger((click)='deleteEntry(view)', ngbTooltip='Delete')
+                            i.fas.fa-trash
+                    .d-flex.align-items-center(*ngIf='view.editing')
+                        button.btn.btn-sm.btn-success((click)='saveEdit(view)')
+                            i.fas.fa-check
+                        button.btn.btn-sm.btn-secondary.ms-1((click)='cancelEdit(view)')
+                            i.fas.fa-times
+
+p.text-muted.mt-3(*ngIf='views.length === 0', translate)
+    | No entries yet. Add your first key above, or use "Scan profiles" to migrate existing file:// paths.
+
+p.text-muted.mt-3(*ngIf='views.length > 0 && filteredViews.length === 0', translate)
+    | No matches for this filter.

@@ -1,0 +1,7 @@
+node_modules/
+dist/
+typings/
+*.log
+.DS_Store
+.webpack-cache/
+*.tgz

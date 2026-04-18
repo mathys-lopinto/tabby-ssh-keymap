@@ -1,0 +1,8 @@
+src/
+tsconfig.json
+webpack.config.mjs
+.github/
+.gitignore
+yarn.lock
+*.tgz
+node_modules/
