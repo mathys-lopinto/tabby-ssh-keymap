@@ -1,8 +1,8 @@
 # tabby-ssh-keymap
 
-A [Tabby](https://tabby.sh/) plugin that adds an indirection layer between your SSH profiles and the physical paths of your private keys. Keeps your synced Tabby config portable across machines.
+A [Tabby](https://tabby.sh/) plugin that lets your SSH profiles reference private keys **by name** instead of by absolute file path — so the same synced Tabby config works on every machine, and moving a key is a one-line edit.
 
-## The problem
+## Why
 
 Tabby's SSH profiles store private keys as absolute local URIs:
 
@@ -11,28 +11,33 @@ privateKeys:
   - file:///home/alice/.ssh/id_work
 ```
 
-When you sync that config to a second machine with a different user or OS layout, the path breaks and every SSH profile using it fails.
+This creates two problems:
 
-## The fix
+- **Sync across machines breaks.** `/home/alice/.ssh/id_work` doesn't exist on your macOS laptop or your Windows desktop. Every profile referencing that path fails when you sync the config.
+- **No single source of truth locally.** Rotating a key, renaming a file, or reorganizing `~/.ssh/` means editing every profile that points to it.
 
-Profiles store a **logical reference** that is safe to sync:
+## How it works
+
+Profiles store a **logical name** that is safe to sync:
 
 ```yaml
 privateKeys:
   - sshkey://work
 ```
 
-Each machine keeps a **local keymap file** (never synced) that resolves `work` to the actual path on that machine:
+Each machine keeps its own **local keymap file** (never synced) that resolves `work` to the actual path on that machine:
 
 ```json
-{
-  "keymap": [
-    { "name": "work", "path": "/home/alice/.ssh/id_work" }
-  ]
-}
+// Linux
+{ "keymap": [{ "name": "work", "path": "/home/alice/.ssh/id_work" }] }
 ```
 
-Rotating a key or moving a file is a one-line edit; the same synced Tabby config works everywhere.
+```json
+// Windows
+{ "keymap": [{ "name": "work", "path": "C:\\Users\\Alice\\.ssh\\id_work" }] }
+```
+
+Same `sshkey://work` in the synced config; each machine maps it to its own layout. Rotate a key or move a file? Edit one line in the keymap — every profile referencing that name follows automatically.
 
 ## Install
 
