@@ -1,6 +1,6 @@
 {
   "name": "tabby-ssh-keymap",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "A Tabby plugin that replaces absolute SSH key paths with logical names in your synced config, while keeping the real file paths local to each machine.",
   "keywords": [
     "tabby-plugin",
